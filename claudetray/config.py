@@ -34,9 +34,9 @@ class Config:
     def __init__(self, path: Path = CONFIG_PATH):
         self.path = path
         self._data = dict(DEFAULTS)
-        self._load()
+        self.load()
 
-    def _load(self):
+    def load(self):
         if self.path.exists():
             with open(self.path, "r") as f:
                 saved = json.load(f)
@@ -48,10 +48,9 @@ class Config:
             json.dump(self._data, f, indent=2)
 
     def get(self, key, default=None):
-        val = self._data.get(key)
-        if val is None and default is not None:
+        if key not in self._data:
             return default
-        return val
+        return self._data[key]
 
     def set(self, key, value):
         self._data[key] = value
