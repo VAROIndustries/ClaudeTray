@@ -56,8 +56,7 @@ class TrayApp:
         return items
 
     def _open_claude(self, directory: str):
-        cmd = f'start cmd /k "cd /d {directory} && claude"'
-        subprocess.Popen(cmd, shell=True)
+        subprocess.Popen(["cmd", "/c", "start", "cmd", "/k", f"cd /d {directory} && claude"])
 
     def on_state_update(self, state: AppState):
         self.state = state

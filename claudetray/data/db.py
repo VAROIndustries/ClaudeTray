@@ -37,6 +37,7 @@ class Database:
                 last_used TEXT NOT NULL,
                 session_count INTEGER DEFAULT 0
             );
+            CREATE INDEX IF NOT EXISTS idx_snapshots_ts ON usage_snapshots(timestamp);
         """)
         self.conn.commit()
 

@@ -4,6 +4,17 @@ from ..config import Config
 from ..data.db import Database
 
 
+ALLOWED_SETTINGS = {
+    "run_on_startup",
+    "refresh_interval_active",
+    "refresh_interval_idle",
+    "api_key",
+    "dashboard_port",
+    "theme",
+    "data_retention_days",
+}
+
+
 def create_app(config: Config, db: Database, tray=None) -> Flask:
     app = Flask(__name__, template_folder="templates", static_folder="static")
 
@@ -62,9 +73,10 @@ def create_app(config: Config, db: Database, tray=None) -> Flask:
 
     @app.route("/api/settings", methods=["POST"])
     def api_settings_post():
-        updates = request.get_json()
+        updates = request.get_json() or {}
         for key, value in updates.items():
-            config.set(key, value)
+            if key in ALLOWED_SETTINGS:
+                config.set(key, value)
         return jsonify({"status": "ok"})
 
     return app

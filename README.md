@@ -35,7 +35,7 @@ ClaudeTray works automatically if you have Claude Code installed with the status
 
 ### Statusline Hook
 
-ClaudeTray reads from the statusline debug JSON file. If you have a custom statusline command in Claude Code that writes to `/tmp/statusline_debug.json`, ClaudeTray will pick it up automatically.
+ClaudeTray reads from the statusline debug JSON file. The path is auto-detected: on Windows, it checks `%TEMP%\statusline_debug.json` first, then `%TMP%\statusline_debug.json`, and falls back to `/tmp/statusline_debug.json`. No path configuration is needed.
 
 ### Settings
 

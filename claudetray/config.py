@@ -38,13 +38,13 @@ class Config:
 
     def load(self):
         if self.path.exists():
-            with open(self.path, "r") as f:
+            with open(self.path, "r", encoding="utf-8") as f:
                 saved = json.load(f)
             self._data.update(saved)
 
     def save(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.path, "w") as f:
+        with open(self.path, "w", encoding="utf-8") as f:
             json.dump(self._data, f, indent=2)
 
     def get(self, key, default=None):

@@ -113,7 +113,7 @@ class StatuslineWatcher:
                 return
             self._last_modified = mod_time
 
-            with open(self.file_path, "r") as f:
+            with open(self.file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             state, snapshot, session = StatuslineParser.parse(data)

@@ -235,7 +235,7 @@ class PopupWindow:
             lbl.bind("<Button-1>", lambda e, d=directory: self._launch_claude(d))
 
     def _launch_claude(self, directory: str):
-        subprocess.Popen(f'start cmd /k "cd /d {directory} && claude"', shell=True)
+        subprocess.Popen(["cmd", "/c", "start", "cmd", "/k", f"cd /d {directory} && claude"])
 
     def _start_drag(self, event):
         self._drag_x = event.x
