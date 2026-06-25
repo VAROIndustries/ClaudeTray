@@ -1,10 +1,13 @@
 import os
 import sys
+import threading
+import time
 from datetime import datetime, timedelta
 from flask import Flask, render_template, jsonify, request
 from ..config import Config
 from ..data.db import Database
 
+IDLE_TIMEOUT = 300  # 5 minutes in seconds
 
 ALLOWED_SETTINGS = {
     "run_on_startup",
@@ -31,6 +34,12 @@ def create_app(config: Config, db: Database, tray=None) -> Flask:
         template_folder=os.path.join(base, "templates"),
         static_folder=os.path.join(base, "static"),
     )
+    app._last_request_time = time.monotonic()
+
+    @app.after_request
+    def _track_activity(response):
+        app._last_request_time = time.monotonic()
+        return response
 
     @app.route("/")
     def index():

@@ -64,7 +64,10 @@ class TrayApp:
 
     def on_state_update(self, state: AppState):
         self.state = state
-        self._icon.icon = render_icon(state.five_hour_pct, state.seven_day_pct)
+        self._icon.icon = render_icon(
+            state.five_hour_pct, state.seven_day_pct,
+            dimmed=not state.session_active,
+        )
         if state.session_active:
             self._icon.title = (
                 f"Claude: 5h: {int(state.five_hour_pct)}% | 7d: {int(state.seven_day_pct)}%"
@@ -106,16 +109,33 @@ class TrayApp:
     def _open_dashboard(self, *args):
         if self._dashboard_thread is None or not self._dashboard_thread.is_alive():
             try:
-                from .dashboard.server import create_app
+                from .dashboard.server import create_app, IDLE_TIMEOUT
+                import time
+
                 app = create_app(self.config, self.db, self)
                 port = self.config.get("dashboard_port")
+
+                from werkzeug.serving import make_server
+                server = make_server("127.0.0.1", port, app)
+                self._dashboard_server = server
+
                 self._dashboard_thread = threading.Thread(
-                    target=lambda: app.run(host="127.0.0.1", port=port, use_reloader=False),
+                    target=server.serve_forever,
                     daemon=True,
                 )
                 self._dashboard_thread.start()
+
+                def _idle_watcher():
+                    while self._dashboard_thread and self._dashboard_thread.is_alive():
+                        idle = time.monotonic() - app._last_request_time
+                        if idle >= IDLE_TIMEOUT:
+                            server.shutdown()
+                            self._dashboard_server = None
+                            return
+                        time.sleep(30)
+
+                threading.Thread(target=_idle_watcher, daemon=True).start()
             except ImportError:
-                # dashboard not yet implemented (Task 7)
                 pass
         port = self.config.get("dashboard_port")
         webbrowser.open(f"http://localhost:{port}")
