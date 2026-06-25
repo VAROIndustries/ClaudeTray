@@ -50,9 +50,10 @@ class PopupWindow:
 
     def show(self, state: AppState):
         self._state = state
-        if self._root is not None and self._visible:
+        if self._root is not None:
             self._root.after(0, lambda: self._root.deiconify())
             self._root.after(10, lambda: self._refresh_ui())
+            self._visible = True
             return
         if self._thread is None or not self._thread.is_alive():
             self._thread = threading.Thread(target=lambda: self._create_and_show(state), daemon=True)

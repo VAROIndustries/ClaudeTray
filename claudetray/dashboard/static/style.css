@@ -108,6 +108,23 @@ main {
 .no-session { color: var(--fg-dim); font-style: italic; padding: 20px 0; }
 
 .chart-card { margin-top: 16px; }
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.chart-header h3 { margin-bottom: 0; }
+.range-selector { display: flex; gap: 4px; }
+.range-btn {
+    background: var(--bg);
+    color: var(--fg-dim);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.range-btn:hover { color: var(--fg); }
+.range-btn.active { background: var(--accent); color: var(--fg); border-color: var(--accent); }
+.nav-external { margin-left: auto; font-size: 12px; opacity: 0.6; }
+.nav-external:hover { opacity: 1; }
 
 table {
     width: 100%;

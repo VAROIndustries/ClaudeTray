@@ -58,6 +58,10 @@ class TrayApp:
     def _open_claude(self, directory: str):
         subprocess.Popen(["cmd", "/c", "start", "cmd", "/k", f"cd /d {directory} && claude"])
 
+    def on_api_update(self, rate_limits):
+        """Receive optional API rate limit data."""
+        self._api_rate_limits = rate_limits
+
     def on_state_update(self, state: AppState):
         self.state = state
         self._icon.icon = render_icon(state.five_hour_pct, state.seven_day_pct)

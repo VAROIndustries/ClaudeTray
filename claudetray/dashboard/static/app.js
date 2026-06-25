@@ -1,9 +1,12 @@
+let historyChart = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Gauge charts on index page
     if (document.getElementById('chart-5h')) {
         initGauges();
         initHistoryChart();
         initResetTimers();
+        initRangeSelector();
         setInterval(refreshState, 10000);
     }
 
@@ -47,22 +50,36 @@ function createGauge(canvasId, pct) {
 }
 
 function initHistoryChart() {
-    const ctx = document.getElementById('history-chart');
-    if (!ctx || !snapshots || snapshots.length === 0) return;
+    renderHistoryChart(snapshots);
+}
 
-    const labels = snapshots.map(s => {
+function renderHistoryChart(data) {
+    const ctx = document.getElementById('history-chart');
+    if (!ctx) return;
+
+    if (historyChart) {
+        historyChart.destroy();
+    }
+
+    if (!data || data.length === 0) {
+        historyChart = null;
+        return;
+    }
+
+    const labels = data.map(s => {
         const d = new Date(s.timestamp);
-        return d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        return d.toLocaleDateString([], {month: 'short', day: 'numeric'}) + ' ' +
+               d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     });
 
-    new Chart(ctx, {
+    historyChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [
                 {
                     label: '5-Hour',
-                    data: snapshots.map(s => s.five_hour_pct),
+                    data: data.map(s => s.five_hour_pct),
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59,130,246,0.1)',
                     fill: true,
@@ -70,7 +87,7 @@ function initHistoryChart() {
                 },
                 {
                     label: '7-Day',
-                    data: snapshots.map(s => s.seven_day_pct),
+                    data: data.map(s => s.seven_day_pct),
                     borderColor: '#8b5cf6',
                     backgroundColor: 'rgba(139,92,246,0.1)',
                     fill: true,
@@ -88,6 +105,26 @@ function initHistoryChart() {
                 legend: { labels: { color: '#e0e0e0' } },
             },
         }
+    });
+}
+
+function initRangeSelector() {
+    document.querySelectorAll('.range-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.range-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var hours = parseInt(btn.dataset.hours);
+            if (hours === 0) {
+                // YTD: calculate hours since Jan 1
+                var now = new Date();
+                var jan1 = new Date(now.getFullYear(), 0, 1);
+                hours = Math.ceil((now - jan1) / 3600000);
+            }
+            fetch('/api/snapshots?hours=' + hours)
+                .then(function(r) { return r.json(); })
+                .then(function(data) { renderHistoryChart(data); })
+                .catch(function() {});
+        });
     });
 }
 

@@ -31,8 +31,25 @@
         {% endif %}
     </div>
 </div>
+{% if state.api_rate_limits %}
+<div class="card api-card">
+    <h3>API Rate Limits</h3>
+    <div class="session-info">
+        <div class="info-row"><span class="label">Requests:</span> <span>{{ state.api_rate_limits.requests_remaining }} / {{ state.api_rate_limits.requests_limit }} remaining ({{ state.api_rate_limits.requests_used_pct | int }}% used)</span></div>
+        <div class="info-row"><span class="label">Tokens:</span> <span>{{ "{:,}".format(state.api_rate_limits.tokens_remaining) }} / {{ "{:,}".format(state.api_rate_limits.tokens_limit) }} remaining ({{ state.api_rate_limits.tokens_used_pct | int }}% used)</span></div>
+    </div>
+</div>
+{% endif %}
 <div class="card chart-card">
-    <h3>Usage History (24h)</h3>
+    <div class="chart-header">
+        <h3>Usage History</h3>
+        <div class="range-selector">
+            <button class="range-btn active" data-hours="24">24h</button>
+            <button class="range-btn" data-hours="168">Week</button>
+            <button class="range-btn" data-hours="720">Month</button>
+            <button class="range-btn" data-hours="0">YTD</button>
+        </div>
+    </div>
     <canvas id="history-chart" height="80"></canvas>
 </div>
 <script>

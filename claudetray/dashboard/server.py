@@ -99,6 +99,18 @@ def create_app(config: Config, db: Database, tray=None) -> Flask:
 def _get_state(tray) -> dict:
     if tray and hasattr(tray, "state"):
         s = tray.state
+        api_rl = None
+        if hasattr(tray, "_api_rate_limits") and tray._api_rate_limits:
+            rl = tray._api_rate_limits
+            api_rl = {
+                "requests_used_pct": rl.requests_used_pct,
+                "tokens_used_pct": rl.tokens_used_pct,
+                "requests_limit": rl.requests_limit,
+                "requests_remaining": rl.requests_remaining,
+                "tokens_limit": rl.tokens_limit,
+                "tokens_remaining": rl.tokens_remaining,
+                "timestamp": rl.timestamp.isoformat() if rl.timestamp else None,
+            }
         return {
             "five_hour_pct": s.five_hour_pct,
             "seven_day_pct": s.seven_day_pct,
@@ -112,10 +124,12 @@ def _get_state(tray) -> dict:
             "last_update": s.last_update.isoformat() if s.last_update else None,
             "five_hour_resets_at": s.five_hour_resets_at,
             "seven_day_resets_at": s.seven_day_resets_at,
+            "api_rate_limits": api_rl,
         }
     return {
         "five_hour_pct": 0, "seven_day_pct": 0, "context_pct": 0,
         "session_id": None, "project_dir": None, "model": None,
         "total_cost": 0, "total_duration_ms": 0, "session_active": False,
         "last_update": None, "five_hour_resets_at": None, "seven_day_resets_at": None,
+        "api_rate_limits": None,
     }
