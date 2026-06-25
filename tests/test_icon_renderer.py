@@ -26,7 +26,7 @@ def test_render_icon_max_values():
 
 def test_render_icon_not_blank():
     img = render_icon(41, 37)
-    pixels = list(img.getdata())
+    pixels = list(img.convert("RGBA").getdata())
     bg_color = (26, 26, 46, 255)
     non_bg = [p for p in pixels if p != bg_color]
-    assert len(non_bg) > 0, "Icon should contain rendered text, not just background"
+    assert len(non_bg) > 0, "Icon should contain rendered bars, not just background"

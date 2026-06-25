@@ -133,8 +133,8 @@ class PopupWindow:
         tk.Frame(root, bg=ACCENT, height=1).pack(fill="x", padx=12)
 
         # Recent projects
-        proj_header = tk.Frame(root, bg=BG, padx=12, pady=(8, 4))
-        proj_header.pack(fill="x")
+        proj_header = tk.Frame(root, bg=BG)
+        proj_header.pack(fill="x", padx=12, pady=(8, 4))
         tk.Label(proj_header, text="Recent Projects", bg=BG, fg=FG, font=("Segoe UI", 9, "bold")).pack(anchor="w")
 
         self._projects_frame = tk.Frame(root, bg=BG, padx=12)
