@@ -10,7 +10,16 @@ def create_app(config: Config, db: Database, tray=None) -> Flask:
     @app.route("/")
     def index():
         state = _get_state(tray)
-        snapshots = db.get_snapshots(since=datetime.now() - timedelta(hours=24))
+        raw_snapshots = db.get_snapshots(since=datetime.now() - timedelta(hours=24))
+        snapshots = [
+            {
+                "timestamp": s.timestamp.isoformat(),
+                "five_hour_pct": s.five_hour_pct,
+                "seven_day_pct": s.seven_day_pct,
+                "context_pct": s.context_pct,
+            }
+            for s in raw_snapshots
+        ]
         return render_template("index.html", state=state, snapshots=snapshots, config=config)
 
     @app.route("/sessions")
