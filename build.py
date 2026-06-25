@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-ENTRY = ROOT / "claudetray" / "app.py"
+ENTRY = ROOT / "claudetray" / "__main__.py"
 TEMPLATES = ROOT / "claudetray" / "dashboard" / "templates"
 STATIC = ROOT / "claudetray" / "dashboard" / "static"
 ICON = ROOT / "assets" / "icon.ico"

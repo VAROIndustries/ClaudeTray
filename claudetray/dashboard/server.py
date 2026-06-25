@@ -1,3 +1,5 @@
+import os
+import sys
 from datetime import datetime, timedelta
 from flask import Flask, render_template, jsonify, request
 from ..config import Config
@@ -15,8 +17,20 @@ ALLOWED_SETTINGS = {
 }
 
 
+def _resource_dir():
+    """Return the dashboard resource directory, handling PyInstaller frozen builds."""
+    if getattr(sys, "frozen", False):
+        return os.path.join(sys._MEIPASS, "claudetray", "dashboard")
+    return os.path.dirname(os.path.abspath(__file__))
+
+
 def create_app(config: Config, db: Database, tray=None) -> Flask:
-    app = Flask(__name__, template_folder="templates", static_folder="static")
+    base = _resource_dir()
+    app = Flask(
+        __name__,
+        template_folder=os.path.join(base, "templates"),
+        static_folder=os.path.join(base, "static"),
+    )
 
     @app.route("/")
     def index():
