@@ -31,3 +31,6 @@ env/
 .DS_Store
 logs/
 logs/session_log.md
+*.spec
+*.db
+.env
