@@ -34,6 +34,9 @@ def render_icon(five_pct: float, seven_pct: float, size: int = 64) -> Image.Imag
         fill_h = int(bar_h * clamped / 100.0)
         if fill_h > 0:
             fill_top = y + bar_h - fill_h
-            draw.rectangle([x + 1, fill_top, x + bar_w - 2, y + bar_h - 2], fill=color)
+            bottom = y + bar_h - 2
+            if fill_top > bottom:
+                fill_top = bottom
+            draw.rectangle([x + 1, fill_top, x + bar_w - 2, bottom], fill=color)
 
     return img
