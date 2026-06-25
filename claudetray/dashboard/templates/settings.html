@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Settings</h2>
+    <form id="settings-form">
+        <div class="setting-row">
+            <label for="run_on_startup">Run on Startup</label>
+            <input type="checkbox" id="run_on_startup" {% if config.get('run_on_startup') %}checked{% endif %}>
+        </div>
+        <div class="setting-row">
+            <label for="refresh_interval_active">Active Refresh (seconds)</label>
+            <input type="number" id="refresh_interval_active" value="{{ config.get('refresh_interval_active') }}" min="1" max="60">
+        </div>
+        <div class="setting-row">
+            <label for="refresh_interval_idle">Idle Refresh (seconds)</label>
+            <input type="number" id="refresh_interval_idle" value="{{ config.get('refresh_interval_idle') }}" min="10" max="300">
+        </div>
+        <div class="setting-row">
+            <label for="api_key">API Key (optional fallback)</label>
+            <input type="password" id="api_key" value="{{ config.get('api_key') or '' }}" placeholder="sk-ant-...">
+        </div>
+        <div class="setting-row">
+            <label for="dashboard_port">Dashboard Port</label>
+            <input type="number" id="dashboard_port" value="{{ config.get('dashboard_port') }}" min="1024" max="65535">
+        </div>
+        <div class="setting-row">
+            <label for="theme">Theme</label>
+            <select id="theme">
+                <option value="dark" {% if config.get('theme') == 'dark' %}selected{% endif %}>Dark</option>
+                <option value="light" {% if config.get('theme') == 'light' %}selected{% endif %}>Light</option>
+            </select>
+        </div>
+        <div class="setting-row">
+            <label for="data_retention_days">Data Retention (days)</label>
+            <input type="number" id="data_retention_days" value="{{ config.get('data_retention_days') }}" min="1" max="365">
+        </div>
+        <button type="submit" class="btn">Save Settings</button>
+        <div id="save-status"></div>
+    </form>
+</div>
+{% endblock %}

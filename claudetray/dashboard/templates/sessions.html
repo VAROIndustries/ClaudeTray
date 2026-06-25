@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Session History</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Project</th>
+                <th>Model</th>
+                <th>Cost</th>
+                <th>Tokens In</th>
+                <th>Tokens Out</th>
+                <th>Last Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sessions %}
+            <tr>
+                <td>{{ s.project_dir.split('\\')[-1] }}</td>
+                <td>{{ s.model }}</td>
+                <td>${{ "%.2f" | format(s.total_cost) }}</td>
+                <td>{{ "{:,}".format(s.tokens_in) }}</td>
+                <td>{{ "{:,}".format(s.tokens_out) }}</td>
+                <td>{{ s.last_seen.strftime('%Y-%m-%d %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

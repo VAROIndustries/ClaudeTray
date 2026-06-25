@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Projects</h2>
+    <div class="project-grid">
+        {% for p in projects %}
+        <div class="project-item">
+            <div class="project-name">{{ p.directory.split('\\')[-1] }}</div>
+            <div class="project-path">{{ p.directory }}</div>
+            <div class="project-meta">{{ p.session_count }} sessions &middot; Last: {{ p.last_used[:10] }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

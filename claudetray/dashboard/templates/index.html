@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-grid">
+    <div class="card gauge-card">
+        <h3>5-Hour Usage</h3>
+        <div class="gauge" id="gauge-5h">
+            <canvas id="chart-5h" width="200" height="200"></canvas>
+            <div class="gauge-value" id="val-5h">{{ state.five_hour_pct | default(0) | int }}%</div>
+        </div>
+        <div class="reset-timer" id="reset-5h"></div>
+    </div>
+    <div class="card gauge-card">
+        <h3>7-Day Usage</h3>
+        <div class="gauge" id="gauge-7d">
+            <canvas id="chart-7d" width="200" height="200"></canvas>
+            <div class="gauge-value" id="val-7d">{{ state.seven_day_pct | default(0) | int }}%</div>
+        </div>
+        <div class="reset-timer" id="reset-7d"></div>
+    </div>
+    <div class="card session-card">
+        <h3>Current Session</h3>
+        {% if state.session_active %}
+        <div class="session-info">
+            <div class="info-row"><span class="label">Project:</span> <span>{{ state.project_dir | default('--') }}</span></div>
+            <div class="info-row"><span class="label">Model:</span> <span>{{ state.model | default('--') }}</span></div>
+            <div class="info-row"><span class="label">Cost:</span> <span>${{ "%.2f" | format(state.total_cost | default(0)) }}</span></div>
+            <div class="info-row"><span class="label">Context:</span> <span>{{ state.context_pct | default(0) | int }}%</span></div>
+        </div>
+        {% else %}
+        <div class="no-session">No active session</div>
+        {% endif %}
+    </div>
+</div>
+<div class="card chart-card">
+    <h3>Usage History (24h)</h3>
+    <canvas id="history-chart" height="80"></canvas>
+</div>
+<script>
+    const snapshots = {{ snapshots | tojson }};
+    const state = {{ state | tojson }};
+</script>
+{% endblock %}
