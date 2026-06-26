@@ -74,6 +74,8 @@ class _FileHandler(FileSystemEventHandler):
 
 
 class StatuslineWatcher:
+    POLL_INTERVAL = 10  # seconds — fallback polling interval
+
     def __init__(self, file_path: Path, on_update: Callable[[AppState], None], db=None):
         self.file_path = file_path
         self.on_update = on_update
@@ -82,10 +84,17 @@ class StatuslineWatcher:
         self._observer = None
         self._last_modified = 0.0
         self._inactive_timer: Optional[threading.Timer] = None
+        self._poll_timer: Optional[threading.Timer] = None
         self._lock = threading.Lock()
+        self._stopped = False
 
     def start(self):
+        self._stopped = False
         self._read_file()
+        self._start_observer()
+        self._schedule_poll()
+
+    def _start_observer(self):
         if not self.file_path.parent.exists():
             self.file_path.parent.mkdir(parents=True, exist_ok=True)
         handler = _FileHandler(self._on_file_changed, self.file_path.name)
@@ -94,12 +103,43 @@ class StatuslineWatcher:
         self._observer.daemon = True
         self._observer.start()
 
+    def _restart_observer(self):
+        """Kill the dead observer and start a fresh one."""
+        if self._observer:
+            try:
+                self._observer.stop()
+                self._observer.join(timeout=1)
+            except Exception:
+                pass
+        self._start_observer()
+
     def stop(self):
+        self._stopped = True
         if self._observer:
             self._observer.stop()
             self._observer.join(timeout=2)
         if self._inactive_timer:
             self._inactive_timer.cancel()
+        if self._poll_timer:
+            self._poll_timer.cancel()
+
+    def _schedule_poll(self):
+        """Schedule the next fallback poll + observer health check."""
+        if self._stopped:
+            return
+        self._poll_timer = threading.Timer(self.POLL_INTERVAL, self._poll_tick)
+        self._poll_timer.daemon = True
+        self._poll_timer.start()
+
+    def _poll_tick(self):
+        """Periodic fallback: re-read file and restart observer if it died."""
+        if self._stopped:
+            return
+        # Health check: restart observer if its thread died
+        if self._observer and not self._observer.is_alive():
+            self._restart_observer()
+        self._read_file()
+        self._schedule_poll()
 
     def _on_file_changed(self):
         self._read_file()
