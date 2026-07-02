@@ -22,8 +22,8 @@ def render_icon(five_pct: float, seven_pct: float, size: int = 64,
     img = Image.new("RGBA", (size, size), bg)
     draw = ImageDraw.Draw(img)
 
-    pad = max(size // 8, 1)
-    gap = max(size // 8, 1)
+    pad = max(size // 12, 1)
+    gap = max(size // 16, 1)
     bar_w = (size - 2 * pad - gap) // 2
     bar_h = size - 2 * pad
 

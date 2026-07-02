@@ -14,23 +14,23 @@ class StatuslineParser:
         """Parse statusline JSON into (AppState, UsageSnapshot, SessionInfo | None)."""
         state = AppState()
 
-        rate_limits = data.get("rate_limits", {})
-        five_hour = rate_limits.get("five_hour", {})
-        seven_day = rate_limits.get("seven_day", {})
+        rate_limits = data.get("rate_limits") or {}
+        five_hour = rate_limits.get("five_hour") or {}
+        seven_day = rate_limits.get("seven_day") or {}
         state.five_hour_pct = five_hour.get("used_percentage", 0)
         state.seven_day_pct = seven_day.get("used_percentage", 0)
         state.five_hour_resets_at = five_hour.get("resets_at")
         state.seven_day_resets_at = seven_day.get("resets_at")
 
-        ctx = data.get("context_window", {})
+        ctx = data.get("context_window") or {}
         state.context_pct = ctx.get("used_percentage", 0)
 
         state.session_id = data.get("session_id")
-        workspace = data.get("workspace", {})
+        workspace = data.get("workspace") or {}
         state.project_dir = workspace.get("current_dir") or data.get("cwd")
-        model_data = data.get("model", {})
+        model_data = data.get("model") or {}
         state.model = model_data.get("display_name")
-        cost_data = data.get("cost", {})
+        cost_data = data.get("cost") or {}
         state.total_cost = cost_data.get("total_cost_usd", 0)
         state.total_duration_ms = cost_data.get("total_duration_ms", 0)
         state.session_active = True
@@ -48,7 +48,7 @@ class StatuslineParser:
 
         session = None
         if state.session_id:
-            tokens = ctx.get("current_usage", {})
+            tokens = ctx.get("current_usage") or {}
             session = SessionInfo(
                 session_id=state.session_id,
                 project_dir=state.project_dir or "",
@@ -155,6 +155,9 @@ class StatuslineWatcher:
 
             with open(self.file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
+
+            if not isinstance(data, dict):
+                return
 
             state, snapshot, session = StatuslineParser.parse(data)
 
