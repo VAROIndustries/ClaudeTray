@@ -80,3 +80,20 @@ def test_api_settings_post(tmp_path):
         r = c.post("/api/settings", json={"theme": "light"})
         assert r.status_code == 200
     assert config.get("theme") == "light"
+
+
+def test_api_settings_post_run_on_startup_registers(tmp_path, monkeypatch):
+    """Toggling run_on_startup from the dashboard must actually (de)register
+    the app for startup, not just flip the config flag."""
+    from claudetray import startup
+
+    calls = []
+    monkeypatch.setattr(
+        startup, "set_run_on_startup", lambda enable, **kw: calls.append(enable)
+    )
+    app, config, _ = _setup(tmp_path)
+    with app.test_client() as c:
+        c.post("/api/settings", json={"run_on_startup": True})
+        c.post("/api/settings", json={"run_on_startup": False})
+    assert config.get("run_on_startup") is False
+    assert calls == [True, False]

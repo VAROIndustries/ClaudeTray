@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+from . import startup
 from .config import Config, CLAUDETRAY_DIR, DB_PATH
 from .data.db import Database
 from .data.watcher import StatuslineWatcher
@@ -12,6 +13,11 @@ def main():
 
     config = Config()
     db = Database(DB_PATH)
+
+    # Self-heal: pre-v0.3.2 builds could save run_on_startup without ever
+    # registering the app, leaving the setting on but startup broken.
+    if config.get("run_on_startup") and not startup.is_registered():
+        startup.set_run_on_startup(True)
 
     # Prune old data on startup
     db.prune(config.get("data_retention_days"))

@@ -1,4 +1,3 @@
-import os
 import subprocess
 import threading
 import webbrowser
@@ -8,6 +7,7 @@ from typing import Optional
 
 import pystray
 
+from . import startup
 from .config import Config
 from .data.db import Database
 from .data.models import AppState
@@ -143,35 +143,7 @@ class TrayApp:
     def _toggle_startup(self, icon, item):
         current = self.config.get("run_on_startup")
         self.config.set("run_on_startup", not current)
-        self._manage_startup_shortcut(not current)
-
-    def _manage_startup_shortcut(self, enable: bool):
-        import sys
-        startup_dir = (
-            Path(os.environ.get("APPDATA", ""))
-            / "Microsoft"
-            / "Windows"
-            / "Start Menu"
-            / "Programs"
-            / "Startup"
-        )
-        shortcut_path = startup_dir / "ClaudeTray.lnk"
-        if enable:
-            try:
-                ps_cmd = (
-                    f'$ws = New-Object -ComObject WScript.Shell; '
-                    f'$s = $ws.CreateShortcut("{shortcut_path}"); '
-                    f'$s.TargetPath = "{sys.executable}"; '
-                )
-                if not getattr(sys, "frozen", False):
-                    ps_cmd += '$s.Arguments = "-m claudetray"; '
-                ps_cmd += '$s.Save()'
-                subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True)
-            except Exception:
-                pass
-        else:
-            if shortcut_path.exists():
-                shortcut_path.unlink()
+        startup.set_run_on_startup(not current)
 
     def _quit(self, icon, item):
         self._icon.stop()

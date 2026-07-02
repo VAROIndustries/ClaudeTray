@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, jsonify, request
 from ..config import Config
 from ..data.db import Database
+from .. import startup
 
 IDLE_TIMEOUT = 300  # 5 minutes in seconds
 
@@ -100,6 +101,8 @@ def create_app(config: Config, db: Database, tray=None) -> Flask:
         for key, value in updates.items():
             if key in ALLOWED_SETTINGS:
                 config.set(key, value)
+                if key == "run_on_startup":
+                    startup.set_run_on_startup(bool(value))
         return jsonify({"status": "ok"})
 
     return app
