@@ -1,3 +1,4 @@
+import threading
 from datetime import datetime, timedelta
 from claudetray.data.models import UsageSnapshot, SessionInfo
 from claudetray.data.db import Database
@@ -69,6 +70,47 @@ def test_prune_old_snapshots(tmp_path):
     results = db.get_snapshots(since=old - timedelta(days=1))
     assert len(results) == 1
     assert results[0].five_hour_pct == 40
+    db.close()
+
+
+def test_concurrent_access_is_thread_safe(tmp_path):
+    """Watchdog, Timer, and Flask threads all hit the same connection concurrently."""
+    db = Database(tmp_path / "test.db")
+    errors = []
+
+    def writer():
+        for _ in range(50):
+            try:
+                db.add_snapshot(
+                    UsageSnapshot(
+                        timestamp=datetime.now(),
+                        five_hour_pct=10,
+                        seven_day_pct=20,
+                        context_pct=5,
+                    )
+                )
+                db.upsert_project("C:\\Projects\\Test")
+            except Exception as e:
+                errors.append(e)
+
+    def reader():
+        for _ in range(50):
+            try:
+                db.get_snapshots(since=datetime.now() - timedelta(minutes=1))
+                db.get_recent_projects()
+            except Exception as e:
+                errors.append(e)
+
+    threads = [threading.Thread(target=writer) for _ in range(4)]
+    threads += [threading.Thread(target=reader) for _ in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert errors == []
+    snaps = db.get_snapshots(since=datetime.now() - timedelta(minutes=5))
+    assert len(snaps) == 200  # 4 writers x 50 inserts, none lost
     db.close()
 
 

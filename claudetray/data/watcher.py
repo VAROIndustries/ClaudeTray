@@ -133,13 +133,20 @@ class StatuslineWatcher:
 
     def _poll_tick(self):
         """Periodic fallback: re-read file and restart observer if it died."""
-        if self._stopped:
-            return
-        # Health check: restart observer if its thread died
-        if self._observer and not self._observer.is_alive():
-            self._restart_observer()
-        self._read_file()
-        self._schedule_poll()
+        try:
+            if self._stopped:
+                return
+            # Health check: restart observer if its thread died
+            if self._observer and not self._observer.is_alive():
+                self._restart_observer()
+            self._read_file()
+        except Exception:
+            pass
+        finally:
+            # The polling chain must survive any failure above, or the icon
+            # freezes until app restart.
+            if not self._stopped:
+                self._schedule_poll()
 
     def _on_file_changed(self):
         self._read_file()
@@ -160,21 +167,28 @@ class StatuslineWatcher:
                 return
 
             state, snapshot, session = StatuslineParser.parse(data)
+        except Exception:
+            return
 
-            with self._lock:
-                self.state = state
+        with self._lock:
+            self.state = state
 
-            if self.db and snapshot:
-                self.db.add_snapshot(snapshot)
-            if self.db and session:
-                self.db.upsert_session(session)
-                self.db.upsert_project(session.project_dir)
+        # A failed history write must not block the icon update below.
+        if self.db:
+            try:
+                if snapshot:
+                    self.db.add_snapshot(snapshot)
+                if session:
+                    self.db.upsert_session(session)
+                    self.db.upsert_project(session.project_dir)
+            except Exception:
+                pass
 
+        try:
             self.on_update(state)
-            self._reset_inactive_timer()
-
-        except (json.JSONDecodeError, OSError):
+        except Exception:
             pass
+        self._reset_inactive_timer()
 
     def _reset_inactive_timer(self):
         if self._inactive_timer:

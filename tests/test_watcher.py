@@ -1,4 +1,5 @@
 import json
+import sqlite3
 import time
 from pathlib import Path
 from claudetray.data.watcher import StatuslineParser, StatuslineWatcher
@@ -98,3 +99,72 @@ def test_watcher_ignores_missing_file(tmp_path):
     )
     watcher._read_file()
     assert len(updates) == 0
+
+
+class _ExplodingDb:
+    """Simulates the shared sqlite connection failing under concurrent access."""
+
+    def add_snapshot(self, snap):
+        raise sqlite3.OperationalError("database is locked")
+
+    def upsert_session(self, session):
+        raise sqlite3.OperationalError("database is locked")
+
+    def upsert_project(self, directory):
+        raise sqlite3.OperationalError("database is locked")
+
+
+def test_poll_tick_reschedules_when_read_file_raises(tmp_path):
+    """A crash inside the poll body must not kill the polling chain."""
+    watcher = StatuslineWatcher(
+        file_path=tmp_path / "statusline_debug.json",
+        on_update=lambda s: None,
+    )
+
+    def boom():
+        raise RuntimeError("unexpected failure")
+
+    watcher._read_file = boom
+    watcher._poll_tick()  # must not raise
+    try:
+        assert watcher._poll_timer is not None
+        assert watcher._poll_timer.is_alive()
+    finally:
+        if watcher._poll_timer:
+            watcher._poll_timer.cancel()
+
+
+def test_read_file_survives_db_error(tmp_path):
+    json_file = tmp_path / "statusline_debug.json"
+    json_file.write_text(json.dumps(SAMPLE_JSON))
+    watcher = StatuslineWatcher(
+        file_path=json_file,
+        on_update=lambda s: None,
+        db=_ExplodingDb(),
+    )
+    watcher._read_file()  # must not raise
+
+
+def test_read_file_updates_icon_despite_db_error(tmp_path):
+    json_file = tmp_path / "statusline_debug.json"
+    json_file.write_text(json.dumps(SAMPLE_JSON))
+    updates = []
+    watcher = StatuslineWatcher(
+        file_path=json_file,
+        on_update=lambda s: updates.append(s),
+        db=_ExplodingDb(),
+    )
+    watcher._read_file()
+    assert len(updates) == 1
+    assert updates[0].five_hour_pct == 41
+
+
+def test_read_file_survives_on_update_error(tmp_path):
+    json_file = tmp_path / "statusline_debug.json"
+    json_file.write_text(json.dumps(SAMPLE_JSON))
+
+    def bad_render(state):
+        raise RuntimeError("pystray render failed")
+
+    watcher = StatuslineWatcher(file_path=json_file, on_update=bad_render)
+    watcher._read_file()  # must not raise
