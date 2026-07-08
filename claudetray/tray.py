@@ -12,6 +12,7 @@ from .config import Config
 from .data.db import Database
 from .data.models import AppState
 from .icon_renderer import render_icon
+from .util import format_reset_countdown
 
 
 class TrayApp:
@@ -68,19 +69,22 @@ class TrayApp:
             state.five_hour_pct, state.seven_day_pct,
             dimmed=not state.session_active,
         )
-        if state.session_active:
-            self._icon.title = (
-                f"Claude: 5h: {int(state.five_hour_pct)}% | 7d: {int(state.seven_day_pct)}%"
-            )
-        else:
-            ago = ""
-            if state.last_update:
-                delta = datetime.now() - state.last_update
-                mins = int(delta.total_seconds() // 60)
-                ago = f" | Last: {mins}m ago" if mins > 0 else ""
-            self._icon.title = (
-                f"Claude: 5h: {int(state.five_hour_pct)}% | 7d: {int(state.seven_day_pct)}%{ago}"
-            )
+        title = f"Claude: 5h: {int(state.five_hour_pct)}% | 7d: {int(state.seven_day_pct)}%"
+        reset_5h = format_reset_countdown(state.five_hour_resets_at)
+        reset_7d = format_reset_countdown(state.seven_day_resets_at)
+        resets = []
+        if reset_5h:
+            resets.append(f"5h resets in {reset_5h}")
+        if reset_7d:
+            resets.append(f"7d resets in {reset_7d}")
+        if resets:
+            title += "\n" + " | ".join(resets)
+        if not state.session_active and state.last_update:
+            delta = datetime.now() - state.last_update
+            mins = int(delta.total_seconds() // 60)
+            if mins > 0:
+                title += f"\nLast: {mins}m ago"
+        self._icon.title = title
         # Update popup if visible
         if self._popup is not None:
             try:

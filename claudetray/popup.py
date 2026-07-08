@@ -7,6 +7,7 @@ from typing import Callable, Optional
 from .config import Config
 from .data.db import Database
 from .data.models import AppState
+from .util import format_reset_countdown
 
 BG = "#1a1a2e"
 BG_SECTION = "#16213e"
@@ -38,8 +39,10 @@ class PopupWindow:
         # Widget references for updates
         self._bar_5h = None
         self._lbl_5h = None
+        self._lbl_reset_5h = None
         self._bar_7d = None
         self._lbl_7d = None
+        self._lbl_reset_7d = None
         self._bar_ctx = None
         self._lbl_ctx = None
         self._lbl_session = None
@@ -79,7 +82,7 @@ class PopupWindow:
         self._root.overrideredirect(True)
         self._root.attributes("-topmost", True)
 
-        w, h = 300, 420
+        w, h = 300, 450
         screen_w = self._root.winfo_screenwidth()
         screen_h = self._root.winfo_screenheight()
         x = screen_w - w - 12
@@ -92,6 +95,7 @@ class PopupWindow:
 
         self._root.bind("<FocusOut>", lambda e: self.hide())
         self._root.after(100, lambda: self._root.focus_force())
+        self._root.after(30000, self._tick_resets)
         self._root.mainloop()
 
     def _build_ui(self):
@@ -115,7 +119,9 @@ class PopupWindow:
         usage_frame.pack(fill="x")
 
         self._bar_5h, self._lbl_5h = self._make_bar(usage_frame, "5-Hour")
+        self._lbl_reset_5h = self._make_reset_row(usage_frame)
         self._bar_7d, self._lbl_7d = self._make_bar(usage_frame, "7-Day")
+        self._lbl_reset_7d = self._make_reset_row(usage_frame)
         self._bar_ctx, self._lbl_ctx = self._make_bar(usage_frame, "Context")
 
         # Divider
@@ -176,6 +182,13 @@ class PopupWindow:
 
         return bar_fill, lbl
 
+    def _make_reset_row(self, parent) -> tk.Label:
+        row = tk.Frame(parent, bg=BG)
+        row.pack(fill="x")
+        lbl = tk.Label(row, text="", bg=BG, fg=FG_DIM, font=("Segoe UI", 8), anchor="e")
+        lbl.pack(side="right", padx=(0, 5))
+        return lbl
+
     def _make_info_row(self, parent, label: str) -> tk.Label:
         row = tk.Frame(parent, bg=BG, pady=1)
         row.pack(fill="x")
@@ -189,6 +202,7 @@ class PopupWindow:
         self._update_bar(self._bar_5h, self._lbl_5h, s.five_hour_pct)
         self._update_bar(self._bar_7d, self._lbl_7d, s.seven_day_pct)
         self._update_bar(self._bar_ctx, self._lbl_ctx, s.context_pct)
+        self._update_reset_labels()
 
         project_name = Path(s.project_dir).name if s.project_dir else "--"
         self._lbl_session.config(text=project_name)
@@ -203,6 +217,22 @@ class PopupWindow:
             self._lbl_duration.config(text="--")
 
         self._refresh_projects()
+
+    def _update_reset_labels(self):
+        s = self._state
+        cd_5h = format_reset_countdown(s.five_hour_resets_at)
+        cd_7d = format_reset_countdown(s.seven_day_resets_at)
+        if self._lbl_reset_5h:
+            self._lbl_reset_5h.config(text=f"resets in {cd_5h}" if cd_5h else "")
+        if self._lbl_reset_7d:
+            self._lbl_reset_7d.config(text=f"resets in {cd_7d}" if cd_7d else "")
+
+    def _tick_resets(self):
+        if self._root is None:
+            return
+        if self._visible:
+            self._update_reset_labels()
+        self._root.after(30000, self._tick_resets)
 
     def _update_bar(self, bar_fill, label, pct: float):
         color = _pct_color(pct)

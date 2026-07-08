@@ -143,9 +143,11 @@ function updateResetTimer(elementId, resetEpoch) {
     const now = Math.floor(Date.now() / 1000);
     const diff = resetEpoch - now;
     if (diff <= 0) { el.textContent = 'Resetting...'; return; }
-    const h = Math.floor(diff / 3600);
+    const d = Math.floor(diff / 86400);
+    const h = Math.floor((diff % 86400) / 3600);
     const m = Math.floor((diff % 3600) / 60);
-    el.textContent = 'Resets in ' + h + 'h ' + m + 'm';
+    const span = d ? (d + 'd ' + h + 'h') : (h ? (h + 'h ' + m + 'm') : (m + 'm'));
+    el.textContent = 'Resets in ' + span;
 }
 
 function refreshState() {
