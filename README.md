@@ -1,5 +1,7 @@
 # ClaudeTray
 
+_Built by [VARØ Industries](https://varo.industries/apps)_
+
 Windows system tray monitor for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) usage. Like a battery meter for your Claude rate limits.
 
 ![System Tray](https://img.shields.io/badge/platform-Windows-blue)
