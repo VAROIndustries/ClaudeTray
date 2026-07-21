@@ -1,5 +1,8 @@
 # ClaudeTray
 
+**🌐 Tool page: [varo.industries/tools/claudetray](https://varo.industries/tools/claudetray)** — features, screenshots, install, and FAQ.
+
+
 _Built by [VARØ Industries](https://varo.industries/apps#github)_
 
 Windows system tray monitor for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) usage. Like a battery meter for your Claude rate limits.
