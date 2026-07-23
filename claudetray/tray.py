@@ -42,6 +42,7 @@ class TrayApp:
                 checked=lambda item: self.config.get("run_on_startup"),
             ),
             pystray.Menu.SEPARATOR,
+            pystray.MenuItem("About ClaudeTray", self._show_about),
             pystray.MenuItem("Quit", self._quit),
         )
 
@@ -143,6 +144,10 @@ class TrayApp:
                 pass
         port = self.config.get("dashboard_port")
         webbrowser.open(f"http://localhost:{port}")
+
+    def _show_about(self, icon, item):
+        from .about import show_about
+        show_about()
 
     def _toggle_startup(self, icon, item):
         current = self.config.get("run_on_startup")
