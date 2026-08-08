@@ -1,5 +1,19 @@
+import os
+import subprocess
 import time
 from typing import Optional
+
+
+def open_claude(directory: str) -> bool:
+    """Open a new console in `directory` running `claude`.
+
+    Uses Popen's cwd rather than a `cd /d ...` prefix so paths containing
+    spaces need no quoting. Returns False if the directory is gone.
+    """
+    if not directory or not os.path.isdir(directory):
+        return False
+    subprocess.Popen(["cmd", "/c", "start", "", "cmd", "/k", "claude"], cwd=directory)
+    return True
 
 
 def format_reset_countdown(resets_at: Optional[int], now: Optional[int] = None) -> str:

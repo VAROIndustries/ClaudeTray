@@ -1,4 +1,3 @@
-import subprocess
 import threading
 import tkinter as tk
 from pathlib import Path
@@ -7,7 +6,7 @@ from typing import Callable, Optional
 from .config import Config
 from .data.db import Database
 from .data.models import AppState
-from .util import format_reset_countdown
+from .util import format_reset_countdown, open_claude
 
 BG = "#1a1a2e"
 BG_SECTION = "#16213e"
@@ -266,7 +265,7 @@ class PopupWindow:
             lbl.bind("<Button-1>", lambda e, d=directory: self._launch_claude(d))
 
     def _launch_claude(self, directory: str):
-        subprocess.Popen(["cmd", "/c", "start", "cmd", "/k", f"cd /d {directory} && claude"])
+        open_claude(directory)
 
     def _start_drag(self, event):
         self._drag_x = event.x

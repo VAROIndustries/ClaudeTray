@@ -1,4 +1,3 @@
-import subprocess
 import threading
 import webbrowser
 from datetime import datetime
@@ -12,7 +11,7 @@ from .config import Config
 from .data.db import Database
 from .data.models import AppState
 from .icon_renderer import render_icon
-from .util import format_reset_countdown
+from .util import format_reset_countdown, open_claude
 
 
 class TrayApp:
@@ -54,11 +53,19 @@ class TrayApp:
         for p in projects:
             dirname = Path(p["directory"]).name
             directory = p["directory"]
-            items.append(pystray.MenuItem(dirname, lambda _, d=directory: self._open_claude(d)))
+            items.append(pystray.MenuItem(dirname, self._make_launcher(directory)))
         return items
 
+    def _make_launcher(self, directory: str):
+        """Bind `directory` in a closure, not a default argument.
+
+        pystray dispatches actions as action(icon, item), so a default-arg
+        capture (lambda _, d=directory) gets `item` in place of the path.
+        """
+        return lambda icon, item: self._open_claude(directory)
+
     def _open_claude(self, directory: str):
-        subprocess.Popen(["cmd", "/c", "start", "cmd", "/k", f"cd /d {directory} && claude"])
+        open_claude(directory)
 
     def on_api_update(self, rate_limits):
         """Receive optional API rate limit data."""
