@@ -18,6 +18,8 @@ Windows system tray monitor for [Claude Code](https://docs.anthropic.com/en/docs
 - **Auto-detect** — Reads Claude Code's statusline data automatically, no configuration needed
 - **Usage history** — Tracks usage over time in a local SQLite database
 - **Run on startup** — Optional Windows startup integration
+- **Claude Queue** — Optional: a count on the icon of the Claude sessions waiting on you (red for a permission prompt, amber for a question, green for finished), a notification when one starts needing you, and a menu list with Open / Copy resume command / Snooze / Dismiss. Needs your own [Claude Queue](https://github.com/VAROIndustries/claude-queue) Worker
+- **Claude Browsers** — Lists every browser profile with the Claude in Chrome extension, with its device ID. Click one to copy a "use this browser" line for Claude, so "Browser 1 / Browser 2" stops being a guess
 
 ## Install
 
@@ -54,6 +56,24 @@ Settings are stored in `~/.claudetray/settings.json`:
 | `dashboard_port` | `5199` | Port for the web dashboard |
 | `theme` | `dark` | Dashboard theme (dark/light) |
 | `data_retention_days` | `30` | How long to keep usage history |
+| `queue_url` | `null` | Claude Queue Worker URL (else read from `~/.claude-queue.json`) |
+| `queue_view_key` | `null` | Claude Queue view key (else `viewKey` in `~/.claude-queue.json`) |
+| `queue_refresh_interval` | `20` | Seconds between Claude Queue checks |
+
+### Claude Queue
+
+Off until it has a Worker URL and **view key**. It reads them from `queue_url` and `queue_view_key` in
+`~/.claudetray/settings.json`, or else from `url` and `viewKey` in `~/.claude-queue.json` (the file the
+Claude Queue plugin already uses). It checks every `queue_refresh_interval` seconds (default 20).
+
+### Claude Browsers
+
+Claude names connected browsers "Browser 1", "Browser 2" in connection order, which changes between
+sessions. The extension keeps a stable device ID in each profile's extension storage (a LevelDB
+database); ClaudeTray reads only its `bridge…` keys, read-only, from Chrome, Chrome Beta, Edge, Brave and
+Island. Profiles that share an ID are flagged, because Claude can't tell them apart. The list refreshes
+every 5 minutes, or use **Refresh**. These keys are internal to the extension, so an extension update
+could break this.
 
 ## Build
 
