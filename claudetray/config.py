@@ -15,6 +15,9 @@ DEFAULTS = {
     "theme": "dark",
     "data_retention_days": 30,
     "statusline_path": None,
+    "queue_url": None,
+    "queue_view_key": None,
+    "queue_refresh_interval": 20,
 }
 
 

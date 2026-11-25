@@ -30,3 +30,14 @@ def test_render_icon_not_blank():
     bg_color = (26, 26, 46, 255)
     non_bg = [p for p in pixels if p != bg_color]
     assert len(non_bg) > 0, "Icon should contain rendered bars, not just background"
+
+
+def test_render_icon_badge_changes_corner():
+    plain = render_icon(41, 37)
+    badged = render_icon(41, 37, badge=3, badge_kind="permission")
+    assert plain.getpixel((52, 52)) != badged.getpixel((52, 52))
+    assert badged.getpixel((52, 52))[:3] in ((220, 38, 38), (255, 255, 255))
+
+
+def test_render_icon_badge_caps_at_nine_plus():
+    assert render_icon(0, 0, badge=42, badge_kind="done").size == (64, 64)

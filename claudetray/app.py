@@ -43,6 +43,13 @@ def main():
         )
         api_poller.start()
 
+    # Optional Claude Queue: sessions waiting on you (only if configured)
+    from .queue_client import QueueClient, QueuePoller, resolve_queue_config
+    queue_cfg = resolve_queue_config(config)
+    if queue_cfg:
+        tray.start_queue(QueueClient(*queue_cfg), QueuePoller,
+                         interval=config.get("queue_refresh_interval", 20))
+
     try:
         tray.run()
     finally:
