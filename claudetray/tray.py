@@ -164,8 +164,7 @@ class TrayApp:
         if not found:
             items.append(pystray.MenuItem("No browser profiles with Claude in Chrome found", None, enabled=False))
         for b in found:
-            items.append(pystray.MenuItem(b.menu_text.replace("&", "&&"),
-                                          lambda icon, item, b=b: self._copy(b.paste_line, "Paste it into your Claude chat")))
+            items.append(pystray.MenuItem(b.menu_text.replace("&", "&&"), self._make_copier(b.paste_line)))
         items += [
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Copy Full List", lambda icon, item: self._copy(
@@ -174,6 +173,10 @@ class TrayApp:
             pystray.MenuItem("Refresh", lambda icon, item: self._refresh_browsers()),
         ]
         return items
+
+    def _make_copier(self, text: str):
+        # Closure, not a default argument: pystray allows at most (icon, item).
+        return lambda icon, item: self._copy(text, "Paste it into your Claude chat")
 
     def _refresh_browsers(self):
         self.browsers(force=True)
